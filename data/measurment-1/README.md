@@ -34,4 +34,4 @@ All the recorded data can be found in the [data/measurment-1](.) folder.
 | [230320-009.wav](230320-009.wav) | Jump recordings | Jump recordings (jumps at x=1m, x=5m and x=2.5m) | 20 dB | 03:08 |
 | [230320-010.wav](230320-010.wav) | Calibration (laboratory)| Calibration of the hydrophone A | 0 dB, 20 dB, 30 dB | 00:45 |
 | [230320-011.wav](230320-011.wav) | Calibration (laboratory)| Calibration of the hydrophone B | 0 dB, 20 dB, 30 dB | 00:45 |
-| [230320-012.wav](230320-012.wav) | Hydrophone noise (laboratory)| Hydrophone noise recording in quite room | - | 00:56 |
+| [230320-012.wav](230320-012.wav) | Hydrophone noise (laboratory)| Hydrophone noise recording in quite room | 0 dB, 20 dB, 30 dB | 00:56 |
