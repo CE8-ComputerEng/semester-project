@@ -18,7 +18,7 @@ The hydrophones were placed on the port side. The hydrophones were placed to be 
 
 ## Measurments (raw recordings)
 
-All the recorded data can be found in the [data](.) folder.
+All the recorded data can be found in the [data/measurment-1](.) folder.
 
 | Filename | Title | Description | Gain | Length |
 |----------|-------|-------------|------|--------|
