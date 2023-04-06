@@ -18,20 +18,20 @@ The hydrophones were placed on the port side. The hydrophones were placed to be 
 
 ## Measurments (raw recordings)
 
-All the recorded data can be found in the [data/measurment-1](.) folder.
+All the recorded data can be found in the [raw](raw/) folder.
 
 | Filename | Title | Description | Gain | Length |
 |----------|-------|-------------|------|--------|
-| [230320-000.wav](230320-000.wav) | Calibration (laboratory) | Calibration of the hydrophone A (battery) | 30 dB, 10 dB, 0 dB | 01:25 |
-| [230320-001.wav](230320-001.wav) | Calibration (laboratory) | Calibration of the hydrophone B | 30 dB | 00:26 |
-| [230320-002.wav](230320-002.wav) | Calibration (laboratory) | Calibration of the hydrophone A | 30 dB | 00:23 |
-| [230320-003.wav](230320-003.wav) | Calibration (laboratory) | Calibration of the hydrophone A | 30 dB | 00:22 |
-| [230320-004.wav](230320-004.wav) | Calibration (laboratory) | Calibration of the hydrophone B | 30 dB | 00:22 |
-| [230320-005.wav](230320-005.wav) | Background noise | Background noise, rock throwing (start 10:50) | 30 dB | 02:13 |
-| [230320-006.wav](230320-006.wav) | Background noise | Background noise, rock throwing (start 11:02) | 0 dB | 03:31 |
-| [230320-007.wav](230320-007.wav) | Background noise | Background noise (start 11:10)  | 20 dB | 15:31 |
-| [230320-008.wav](230320-008.wav) | Jump recordings | Jump recordings (jumps at x=1m, x=5m and x=2.5m) | 0 dB | 04:48  |
-| [230320-009.wav](230320-009.wav) | Jump recordings | Jump recordings (jumps at x=1m, x=5m and x=2.5m) | 20 dB | 03:08 |
-| [230320-010.wav](230320-010.wav) | Calibration (laboratory)| Calibration of the hydrophone A | 0 dB, 20 dB, 30 dB | 00:45 |
-| [230320-011.wav](230320-011.wav) | Calibration (laboratory)| Calibration of the hydrophone B | 0 dB, 20 dB, 30 dB | 00:45 |
-| [230320-012.wav](230320-012.wav) | Hydrophone noise (laboratory)| Hydrophone noise recording in quite room | 0 dB, 20 dB, 30 dB | 00:56 |
+| [230320-000.wav](raw/230320-000.wav) | Calibration (laboratory) | Calibration of the hydrophone A (battery) | 30 dB, 10 dB, 0 dB | 01:25 |
+| [230320-001.wav](raw/230320-001.wav) | Calibration (laboratory) | Calibration of the hydrophone B | 30 dB | 00:26 |
+| [230320-002.wav](raw/230320-002.wav) | Calibration (laboratory) | Calibration of the hydrophone A | 30 dB | 00:23 |
+| [230320-003.wav](raw/230320-003.wav) | Calibration (laboratory) | Calibration of the hydrophone A | 30 dB | 00:22 |
+| [230320-004.wav](raw/230320-004.wav) | Calibration (laboratory) | Calibration of the hydrophone B | 30 dB | 00:22 |
+| [230320-005.wav](raw/230320-005.wav) | Background noise | Background noise, rock throwing (start 10:50) | 30 dB | 02:13 |
+| [230320-006.wav](raw/230320-006.wav) | Background noise | Background noise, rock throwing (start 11:02) | 0 dB | 03:31 |
+| [230320-007.wav](raw/230320-007.wav) | Background noise | Background noise (start 11:10)  | 20 dB | 15:31 |
+| [230320-008.wav](raw/230320-008.wav) | Jump recordings | Jump recordings (jumps at x=1m, x=5m and x=2.5m) | 0 dB | 04:48  |
+| [230320-009.wav](raw/230320-009.wav) | Jump recordings | Jump recordings (jumps at x=1m, x=5m and x=2.5m) | 20 dB | 03:08 |
+| [230320-010.wav](raw/230320-010.wav) | Calibration (laboratory)| Calibration of the hydrophone A | 0 dB, 20 dB, 30 dB | 00:45 |
+| [230320-011.wav](raw/230320-011.wav) | Calibration (laboratory)| Calibration of the hydrophone B | 0 dB, 20 dB, 30 dB | 00:45 |
+| [230320-012.wav](raw/230320-012.wav) | Hydrophone noise (laboratory)| Hydrophone noise recording in quite room | 0 dB, 20 dB, 30 dB | 00:56 |
