@@ -31,7 +31,7 @@ All the recorded data can be found in the [raw](raw/) folder.
 | [230320-006.wav](raw/230320-006.wav) | Background noise | Background noise, rock throwing (start 11:02) | 0 dB | 03:31 |
 | [230320-007.wav](raw/230320-007.wav) | Background noise | Background noise (start 11:10)  | 20 dB | 15:31 |
 | [230320-008.wav](raw/230320-008.wav) | Jump recordings | Jump recordings (jumps at x=1m, x=5m and x=2.5m) | 0 dB | 04:48  |
-| [230320-009.wav](raw/230320-009.wav) | Jump recordings | Jump recordings (jumps at x=1m, x=5m and x=2.5m) | 20 dB | 03:08 |
+| [230320-009.wav](raw/230320-009.wav) | Jump recordings | Jump recordings (jumps at x=1m and x=6m) | 20 dB | 03:08 |
 | [230320-010.wav](raw/230320-010.wav) | Calibration (laboratory)| Calibration of the hydrophone A | 0 dB, 20 dB, 30 dB | 00:45 |
 | [230320-011.wav](raw/230320-011.wav) | Calibration (laboratory)| Calibration of the hydrophone B | 0 dB, 20 dB, 30 dB | 00:45 |
 | [230320-012.wav](raw/230320-012.wav) | Hydrophone noise (laboratory)| Hydrophone noise recording in quite room | 0 dB, 20 dB, 30 dB | 00:56 |
