@@ -16,6 +16,8 @@ The hydrophones were placed on the port side. The hydrophones were placed to be 
 
 ![Protectice case](../../docs/imgs/measurement_setup_in_protective_cage.jpg)
 
+Hydrophone A was attached to the rescue ladder and hydrophone B was hung from the port side.
+
 ## Measurments (raw recordings)
 
 All the recorded data can be found in the [raw](raw/) folder.
