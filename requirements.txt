@@ -3,3 +3,4 @@ librosa==0.9.2
 matplotlib==3.7.1
 numpy==1.20.3
 soundfile==0.12.1
+echopype==0.7.1
