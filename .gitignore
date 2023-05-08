@@ -166,3 +166,6 @@ cython_debug/
 
 # Graphs folder
 graphs
+
+# Pytorch lightning logs
+lightning_logs/
