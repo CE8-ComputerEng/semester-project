@@ -53,11 +53,11 @@ def import_data(np_datapath, np_labelpath, datapath, labelpath, classes):
             # Go through each line in the label file and check if it contains a BACKGROUND label, if not, then it is set to 1.
             with open(label, 'r') as f:
                 for line in f:
-                    if 'BACKGROUND' in line:
-                        label_class = "BACKGROUND"
+                    if 'JUMP' in line:
+                        label_class = "JUMP"
                         break
                     else:
-                        label_class = "JUMP"
+                        label_class = "BACKGROUND"
             #label_class = open(label, 'r').readline(-1).strip()
 
             labels_np.append(label_dict[label_class]) # TODO: Change this to the label
