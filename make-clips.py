@@ -5,8 +5,8 @@ from tqdm import tqdm
 
 
 ####################
-AUDIO_SOURCE_PATH = 'data/measurment-2/raw/230428-001.wav'
-AUDIO_SOURCE_LABEL_PATH = 'data/measurment-2/labels/230428-001.txt'
+AUDIO_SOURCE_PATH = 'data/measurment-2/raw/230428-006.wav'
+AUDIO_SOURCE_LABEL_PATH = 'data/measurment-2/labels/230428-006.txt'
 AUDIO_SOURCE_CHANNELS = [0]
 
 AUDIO_OUTPUT_CLIP_PATH = 'data/measurment-2/clips/wav'
@@ -86,10 +86,15 @@ length = audio.shape[1] / SAMPLE_RATE
 
 # Read the label file
 labels = read_label_file(AUDIO_SOURCE_LABEL_PATH)
-labels.append({'start': 0.0, 'end': float(length), 'label': 'Background'})
+labels.append({'start': 0.0, 'end': float(length), 'label': 'BACKGROUND'})
 
-for label in labels:
-    print(f'Lable: {label["label"]}, Start: {label["start"]:.2f}, End: {label["end"]:.2f}')
+# Get unique labels
+all_labels = list(set([label['label'] for label in labels]))
+all_labels.sort()
+
+print('Unique labels:')
+for label in all_labels:
+    print(f' - "{label}"')
 
 # Create the output directories
 os.makedirs(AUDIO_OUTPUT_CLIP_PATH, exist_ok=True)
