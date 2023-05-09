@@ -37,6 +37,12 @@ def read_label_file(file_path):
             line = line.strip()
             
             if line:
+                if line.startswith('#'):
+                    continue
+                
+                if line.split('\t').__len__() != 3:
+                    continue
+                
                 [start, end, label] = line.split('\t')
                 labels.append({
                     'start': float(start),
@@ -51,17 +57,39 @@ def search_labels_for_clip(labels, clip_start, clip_end):
     clip_labels = list()
     
     for label in labels:
-        if label['start'] >= clip_start and label['end'] <= clip_end:
+        # Check if the clip is inside the label
+        if label['start'] <= clip_start and clip_end <= label['end']:
             clip_labels.append(label)
+        
+        # Check if the label is inside the clip  
+        elif clip_start <= label['start'] and label['end'] <= clip_end:
+            clip_labels.append(label)
+            
+        # Check if the label starts inside the clip
+        elif clip_start <= label['start'] and label['start'] <= clip_end:
+            clip_labels.append(label)
+    
+        # Check if the label ends inside the clip
+        elif clip_start <= label['end'] and label['end'] <= clip_end:
+            clip_labels.append(label)
+        
+        # No match
+        else:
+            pass
     
     return clip_labels
 
 
 # Load the audio file
 audio = load_audio_file(AUDIO_SOURCE_PATH)
+length = audio.shape[1] / SAMPLE_RATE
 
 # Read the label file
 labels = read_label_file(AUDIO_SOURCE_LABEL_PATH)
+labels.append({'start': 0.0, 'end': float(length), 'label': 'Background'})
+
+for label in labels:
+    print(f'Lable: {label["label"]}, Start: {label["start"]:.2f}, End: {label["end"]:.2f}')
 
 # Create the output directories
 os.makedirs(AUDIO_OUTPUT_CLIP_PATH, exist_ok=True)
