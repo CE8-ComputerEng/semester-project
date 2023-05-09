@@ -3,7 +3,7 @@ import glob
 import tqdm
 import torchaudio
 import os
-def import_data(np_datapath, np_labelpath, datapath, labelpath):
+def import_data(np_datapath, np_labelpath, datapath, labelpath, classes):
     """This function will first try to load the data from the numpy file. If the file doesn't exist, it will create it from the audio files.
     Args:
         np_datapath (String): path to the numpy file containing the spectrograms
@@ -14,6 +14,14 @@ def import_data(np_datapath, np_labelpath, datapath, labelpath):
     Returns:
         (np.array, np.array, tuple (w,h)): Returns the spectrograms and labels as numpy arrays and the size of a spectrogram in the form (height, width)
     """
+    # Create a dictionary to map the labels to numbers
+    label_dict = {}
+    i = 0
+    for singel_class in classes:
+        label_dict[singel_class] = i
+        i += 1
+    print(label_dict)
+
     NPDATAPATH = np_datapath
     NPLABELPATH = np_labelpath
     # Try to load the data from the numpy file
@@ -28,8 +36,6 @@ def import_data(np_datapath, np_labelpath, datapath, labelpath):
         labels = glob.glob(LABELPATH + '*.txt')
 
         # Convert each wav file to a spectrogram and save it in a numpy array
-        #data_np = np.empty((len(data)))
-        #labels_np = np.empty((len(labels)))
         data_np = []
         labels_np = []
         # Use tqdm to show progress bar
@@ -43,14 +49,10 @@ def import_data(np_datapath, np_labelpath, datapath, labelpath):
             spectrogram = torchaudio.transforms.MelSpectrogram(sample_rate=rate_of_sample, n_mels=128, n_fft=2048)(audio_file)
             spectrogram = torchaudio.transforms.AmplitudeToDB()(np.abs(spectrogram))
             data_np.append(spectrogram)
-            labels_np.append(0) # TODO: Change this to the label
+            # Read first line from label file:
+            label_class = open(label, 'r').readline().strip()
+            labels_np.append(label_dict[label_class]) # TODO: Change this to the label
             i += 1
-            """if data_np.size == 0:
-                data_np[i] = spectrogram
-                labels_np[i] = label
-            else:
-                data_np = np.concatenate((data_np, spectrogram), axis=0)
-                labels_np = np.concatenate((labels_np, label), axis=0)"""
             pbar.update(1)
         pbar.close()
         # Convert list of numpy arrays to a single numpy array
