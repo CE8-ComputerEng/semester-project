@@ -161,8 +161,8 @@ cython_debug/
 
 # Audio files
 *.wav
-# label files
-*.txt
+# Clips
+**/clips/
 
 # Graphs folder
 graphs
