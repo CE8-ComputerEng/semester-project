@@ -5,6 +5,7 @@ import torchaudio
 import os
 def import_data(np_datapath, np_labelpath, datapath, labelpath, classes):
     """This function will first try to load the data from the numpy file. If the file doesn't exist, it will create it from the audio files.
+        For now, it will only work with binary classification, so whether it is background noise or a jump.
     Args:
         np_datapath (String): path to the numpy file containing the spectrograms
         np_labelpath (String): path to the numpy file containing the labels
@@ -49,8 +50,16 @@ def import_data(np_datapath, np_labelpath, datapath, labelpath, classes):
             spectrogram = torchaudio.transforms.MelSpectrogram(sample_rate=rate_of_sample, n_mels=128, n_fft=2048)(audio_file)
             spectrogram = torchaudio.transforms.AmplitudeToDB()(np.abs(spectrogram))
             data_np.append(spectrogram)
-            # Read first line from label file:
-            label_class = open(label, 'r').readline().strip()
+            # Go through each line in the label file and check if it contains a BACKGROUND label, if not, then it is set to 1.
+            with open(label, 'r') as f:
+                for line in f:
+                    if 'JUMP' in line:
+                        label_class = "JUMP"
+                        break
+                    else:
+                        label_class = "BACKGROUND"
+            #label_class = open(label, 'r').readline(-1).strip()
+
             labels_np.append(label_dict[label_class]) # TODO: Change this to the label
             i += 1
             pbar.update(1)
