@@ -1,4 +1,4 @@
-# Measurment 1 - Initial measurment
+# Measurment 2 - Second measurment
 
 - Date: 2023-04-28
 - Place: Østre Havn, Aalborg, Denmark and Vestre Havnepromenade close to the Aalborg Havnefront, Aalborg, Denmark
