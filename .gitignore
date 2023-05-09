@@ -169,3 +169,5 @@ graphs
 
 # Pytorch lightning logs
 lightning_logs/
+
+*npy
