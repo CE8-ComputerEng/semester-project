@@ -3,60 +3,133 @@ import librosa
 import soundfile as sf
 
 
-# Configuration variables
+####################
+AUDIO_SOURCE_PATH = 'data/measurment-2/raw/230428-003.wav'
+AUDIO_SOURCE_LABEL_PATH = 'data/measurment-2/labels/230428-003.txt'
+AUDIO_SOURCE_CHANNELS = [0]
+
+AUDIO_OUTPUT_CLIP_PATH = 'data/measurment-2/jumps/'
+AUDIO_OUTPUT_FORMAT = 'wav'
+AUDIO_OUTPUT_SUBTYPE = 'PCM_16'
+
 SAMPLE_RATE = 48000
-JUMP_DURATION = 20.0
-AUDIO_SUBTYPE = 'PCM_16'
-AUDIO_FORMAT = 'WAV'
-SOURCE_FOLDER_PATH = 'data/measurment-1/raw'
-OUTPUT_FOLDER_PATH = 'data/measurment-1/jumps'
-JUMPS_TIMESTAMP = {
-    '230320-008.wav': [
-        48.5,
-        144.5,
-        243.7,
-    ],
-    '230320-009.wav': [
-        48.7,
-        135.3,
-    ],
-}
+
+CLIP_PADDING = False # If true, the clips will be padded to the CLIP_LENGTH
+CLIP_LENGTH = 20.0
+####################
 
 
-def load_audio_file(file_path, mono=False, sr=SAMPLE_RATE):
-    return librosa.load(file_path, mono=mono, sr=sr)
-
-
-def save_audio_file(file_path, audio, sr, subtype=AUDIO_SUBTYPE, format=AUDIO_FORMAT):
-    sf.write(file_path, audio.T, sr, subtype=subtype, format=format)
+# Load the audio file
+def load_audio_file(file_path, channels=AUDIO_SOURCE_CHANNELS, sr=SAMPLE_RATE):
+    audio, sr = librosa.load(file_path, mono=False, sr=sr)
+    audio = audio[channels,:]
     
+    return audio
 
-def generate_jump_audio(audio, sr, jump_position, jump_duration=JUMP_DURATION):
-    jump_start = int((jump_position - jump_duration / 2) * sr)
-    jump_end = int((jump_position + jump_duration / 2) * sr)
+# Read the label file
+def read_label_file(file_path):
+    labels = list()
     
-    jump_audio = audio[:,jump_start:jump_end]
+    with open(file_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            
+            if line:
+                if line.startswith('#'):
+                    continue
+                
+                if line.split('\t').__len__() != 3:
+                    continue
+                
+                [start, end, label] = line.split('\t')
+                labels.append({
+                    'start': float(start),
+                    'end': float(end),
+                    'label': label,
+                })
     
-    return jump_audio
+    return labels
+
+# Read the label file
+def read_label_file(file_path):
+    labels = list()
+    
+    with open(file_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            
+            if line:
+                if line.startswith('#'):
+                    continue
+                
+                if line.split('\t').__len__() != 3:
+                    continue
+                
+                [start, end, label] = line.split('\t')
+                labels.append({
+                    'start': float(start),
+                    'end': float(end),
+                    'label': label,
+                })
+    
+    return labels
 
 
-if __name__ == '__main__':
-    os.makedirs(OUTPUT_FOLDER_PATH, exist_ok=True)
+# Load the audio file
+audio = load_audio_file(AUDIO_SOURCE_PATH)
+length = audio.shape[1] / SAMPLE_RATE
+
+# Read the label file
+labels = read_label_file(AUDIO_SOURCE_LABEL_PATH)
+
+# Create the output directories
+os.makedirs(AUDIO_OUTPUT_CLIP_PATH, exist_ok=True)
+
+# Filter out the jumps
+jumps = list(filter(lambda label: label['label'] == 'JUMP', labels))
+print(f'Found {len(jumps)} jumps')
+
+print('Generating jump audio files...')
+
+# Iterate over the jumps
+for idx, jump in enumerate(jumps):
+    print(f'Generating jump audio file {idx + 1} of {len(jumps)}')
     
-    for file_name, jump_positions in JUMPS_TIMESTAMP.items():
-        print(f'Generating jump audio files for {file_name}')
+    if CLIP_PADDING:
+        clip_start = jump['start'] - CLIP_LENGTH / 2
+        clip_end = jump['start'] + CLIP_LENGTH / 2
+    
+    else:
+        clip_start = jump['start']
+        clip_end = jump['end']
+    
+    clip_start = int(clip_start * SAMPLE_RATE)
+    clip_end = int(clip_end * SAMPLE_RATE)
+    
+    # Check if the clip is inside the audio
+    if clip_start < 0:
+        clip_start = 0
         
-        audio_path = os.path.join(SOURCE_FOLDER_PATH, file_name)
-        audio, sr = load_audio_file(audio_path)
+    if clip_end > audio.shape[1]:
+        clip_end = audio.shape[1]
         
-        for i, jump_position in enumerate(jump_positions):
-            print(f'Generating jump audio file {i + 1} of {len(jump_positions)}')
-            
-            jump_audio = generate_jump_audio(audio, sr, jump_position)
-            output_audio_path = os.path.join(OUTPUT_FOLDER_PATH, file_name.replace('.wav', f'-jump-{i+1}.wav'))
-            
-            save_audio_file(output_audio_path, jump_audio, sr)
-            
-            print(f'Jump audio file saved to {output_audio_path}')
-            
-    print('Done')
+    # Cut the clip
+    clip = audio[:,clip_start:clip_end]
+    
+    if clip.shape[0] == 1:
+        clip = clip[0]
+    
+    # Create the output file name
+    audio_file_name = os.path.basename(AUDIO_SOURCE_PATH).split('.')[0]
+    clip_sequence = idx + 1
+    pad_str = '-pad' if CLIP_PADDING else ''
+    output_file_name = f'{audio_file_name}-jump{pad_str}-{clip_sequence}'
+    
+    # Create the output clip file path
+    output_clip_file_name = f'{output_file_name}.{AUDIO_OUTPUT_FORMAT}'
+    output_clip_file_path = os.path.join(AUDIO_OUTPUT_CLIP_PATH, output_clip_file_name)
+    
+    # Save the clip
+    sf.write(output_clip_file_path, clip.T, SAMPLE_RATE, subtype=AUDIO_OUTPUT_SUBTYPE, format=AUDIO_OUTPUT_FORMAT)
+    
+print('Done!')
