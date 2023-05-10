@@ -10,7 +10,7 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)
 
-    plt.figure(figsize=(6, 7))
+    plt.figure(figsize=(15, 15))
     
     im = plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.colorbar(im, fraction=0.046, pad=0.04)
