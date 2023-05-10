@@ -14,6 +14,7 @@ AUDIO_OUTPUT_SUBTYPE = 'PCM_16'
 
 SAMPLE_RATE = 48000
 
+CLIP_PADDING = False # If true, the clips will be padded to the CLIP_LENGTH
 CLIP_LENGTH = 20.0
 ####################
 
@@ -92,9 +93,15 @@ print('Generating jump audio files...')
 
 # Iterate over the jumps
 for idx, jump in enumerate(jumps):
-    # Calculate the start and end of the clip
-    clip_start = jump['start'] - CLIP_LENGTH / 2
-    clip_end = jump['start'] + CLIP_LENGTH / 2
+    print(f'Generating jump audio file {idx + 1} of {len(jumps)}')
+    
+    if CLIP_PADDING:
+        clip_start = jump['start'] - CLIP_LENGTH / 2
+        clip_end = jump['start'] + CLIP_LENGTH / 2
+    
+    else:
+        clip_start = jump['start']
+        clip_end = jump['end']
     
     clip_start = int(clip_start * SAMPLE_RATE)
     clip_end = int(clip_end * SAMPLE_RATE)
@@ -115,7 +122,8 @@ for idx, jump in enumerate(jumps):
     # Create the output file name
     audio_file_name = os.path.basename(AUDIO_SOURCE_PATH).split('.')[0]
     clip_sequence = idx + 1
-    output_file_name = f'{audio_file_name}-jump-{clip_sequence}'
+    pad_str = '-pad' if CLIP_PADDING else ''
+    output_file_name = f'{audio_file_name}-jump{pad_str}-{clip_sequence}'
     
     # Create the output clip file path
     output_clip_file_name = f'{output_file_name}.{AUDIO_OUTPUT_FORMAT}'
