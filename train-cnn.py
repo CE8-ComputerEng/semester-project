@@ -21,9 +21,9 @@ import tqdm
 from dataset import SpectrogramDataset
 import utils
 import dataimporter
-from utils import plot_confusion_matrix
-
-
+from utils import plot_confusion_matrix, plot_multilabel_confusion_matrix
+from sklearn.metrics import accuracy_score, multilabel_confusion_matrix
+#torch.autograd.set_detect_anomaly(True)
 # ## CNN model
 
 
@@ -46,12 +46,13 @@ class CNNClassifier(pl.LightningModule):
         
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax(dim=1)
-        self.threshold = nn.Threshold(0.5, 0)
+        #self.threshold = nn.Threshold(0.5, 0)
         #self.criterion = nn.CrossEntropyLoss()
         self.criterion = nn.BCELoss()
-        self.confusion_matrix = torchmetrics.ConfusionMatrix(num_classes=num_classes, task='multiclass')
-        
-        self.test_confusion_matrix = np.zeros((num_classes, num_classes))
+        #self.confusion_matrix = torchmetrics.ConfusionMatrix(num_classes=num_classes, task='multiclass')
+        self.confusion_matrix = None
+        self.test_confusion_matrix = None
+        #self.test_confusion_matrix = np.zeros((num_classes, num_classes))
         
         
     def forward(self, x):
@@ -74,27 +75,31 @@ class CNNClassifier(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self(x)
-        
-        loss = self.criterion(y_hat, y)
+        y_new = y.clone().detach().type(torch.FloatTensor).to(self.device)
+        loss = self.criterion(y_hat, y_new)
+        #print(loss)
         self.log('train_loss', loss)
         
-        # Prediction should also be able to handle multi label
-        _, predicted = self.threshold(y_hat)
-        print(predicted)
+        # Take y_hat and set all values below 0.5 to 0 and all values above 0.5 to 1
+        predicted = y_hat.clone().detach().type(torch.FloatTensor).to(self.device)
+        for i in range(len(predicted)):
+            for j in range(len(predicted[i])):
+                if predicted[i][j] < 0.5:
+                    predicted[i][j] = 0
+                else:
+                    predicted[i][j] = 1
+
         #_, predicted = torch.max(y_hat, 1)
-        
-        # multi label accuracy
-        accuracy = (predicted == y).sum().item() / (len(y) * len(self.classes))
-        print(accuracy)
-        #accuracy = (predicted == y).sum().item() / len(y)
-        self.log('train_acc', accuracy, prog_bar=True)
+        #accuracy = (predicted == y_new).sum().item() / len(y_new)
+        accuracy = accuracy_score(y_new.cpu().numpy(), predicted.cpu().numpy())
+        self.log('train_acc', accuracy)
         
         return loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self(x)
-        y = y.type(torch.FloatTensor).to(self.device)
+        y_new = y.clone().detach().type(torch.FloatTensor).to(self.device)
 
         #print(y_hat.shape)
         #print(y.shape)
@@ -106,34 +111,62 @@ class CNNClassifier(pl.LightningModule):
             print(loss)
             average_loss += loss
         loss = average_loss / len(y_hat)"""
-        loss = self.criterion(y_hat, y)
-        print(loss)
+        loss = self.criterion(y_hat, y_new)
+        #print(loss)
         self.log('val_loss', loss)
         
-        # Take the 
-        print(predicted)
-        
+        # Take y_hat and set all values below 0.5 to 0 and all values above 0.5 to 1
+        predicted = y_hat.clone().detach().type(torch.FloatTensor).to(self.device)
+        for i in range(len(predicted)):
+            for j in range(len(predicted[i])):
+                if predicted[i][j] < 0.5:
+                    predicted[i][j] = 0
+                else:
+                    predicted[i][j] = 1
+
         #_, predicted = torch.max(y_hat, 1)
-        #accuracy = (predicted == y).sum().item() / len(y)
+        #accuracy = (predicted == y_new).sum().item() / len(y_new)
+        accuracy = accuracy_score(y_new.cpu().numpy(), predicted.cpu().numpy())
         self.log('val_acc', accuracy)
     
     def test_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self(x)
-        
-        loss = self.criterion(y_hat, y)
+        y_new = y.clone().detach().type(torch.FloatTensor).to(self.device)
+        loss = self.criterion(y_hat, y_new)
+        #print(loss)
         self.log('test_loss', loss)
         
-        _, predicted = torch.max(y_hat, 1)
-        accuracy = (predicted == y).sum().item() / len(y)
+        # Take y_hat and set all values below 0.5 to 0 and all values above 0.5 to 1
+        predicted = y_hat.clone().detach().type(torch.FloatTensor).to(self.device)
+        for i in range(len(predicted)):
+            for j in range(len(predicted[i])):
+                if predicted[i][j] < 0.5:
+                    predicted[i][j] = 0
+                else:
+                    predicted[i][j] = 1
+
+        #_, predicted = torch.max(y_hat, 1)
+        #accuracy = (predicted == y_new).sum().item() / len(y_new)
+        accuracy = accuracy_score(y_new.cpu().numpy(), predicted.cpu().numpy())
         self.log('test_acc', accuracy)
         
-        confusion_matrix = self.confusion_matrix(predicted, y)
-        self.test_confusion_matrix += confusion_matrix.cpu().numpy()
+        self.confusion_matrix = multilabel_confusion_matrix(y_new.cpu().numpy(), predicted.cpu().numpy())
+        if self.test_confusion_matrix is None:
+            self.test_confusion_matrix = self.confusion_matrix
+        else:
+            self.test_confusion_matrix += self.confusion_matrix
+        #self.test_confusion_matrix += self.confusion_matrix
+
+        #confusion_matrix = self.confusion_matrix(predicted, y)
+        #self.test_confusion_matrix += confusion_matrix.cpu().numpy()
+
         
     def on_test_epoch_end(self):
-        plot_confusion_matrix(self.test_confusion_matrix, self.classes, filename='confusion_matrix.png')
-        
+        #plot_confusion_matrix(self.test_confusion_matrix, self.classes, filename='confusion_matrix.png')
+        plot_multilabel_confusion_matrix(self.test_confusion_matrix, self.classes, filename='multilabel_confusion_matrix.png')
+        #print(self.test_confusion_matrix)
+        pass 
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
         x = batch
         y_hat = self(x)
@@ -150,29 +183,55 @@ def main():
     # 
 
 
-    CLASSES = ['BACKGROUND','JUMP','BOAT','SEAGUL_SCREAM','BRIDGE','AMBULANCE','SCOOTER','PEE','OBJECT_SPLASH','UFO','IDLE_MOTOR','SEAGUL_SPLASH','VOICE', 'SWIM']
+    CLASSES = ['BACKGROUND','JUMP','BOAT','SEAGUL_SCREAM','BRIDGE','AMBULANCE','SCOOTER','PEE','OBJECT_SPLASH','UFO','IDLE_MOTOR','SEAGUL_SPLASH','VOICE', 'SWIM', 'HORN', 'ROCK']
     NPDATAPATH = 'data/measurment-2/data.npy'
     NPLABELPATH = 'data/measurment-2/labels.npy'
     DATAPATH = 'data/measurment-2/clips/wav/'
     LABELPATH = 'data/measurment-2/clips/txt/'
     data_np, labels_np, data_size = dataimporter.import_data(NPDATAPATH, NPLABELPATH, DATAPATH, LABELPATH, CLASSES)
 
+    # Plot the distribution of the labels
 
+    class DistributionDataset:
+        def __init__(self, data_np, labels_np, CLASSES):
+            label_count = np.zeros(len(CLASSES))
+            for data_np, labels_np in zip(data_np, labels_np):
+                label_count += labels_np
+            self.index = CLASSES
+            self.values = label_count
+        
+    distribution = DistributionDataset(data_np, labels_np, CLASSES)
+    utils.plot_label_distribution(distribution)
 
+    # Now we limit the number of labels to 2, Background and Jump
+    # If a samples contains both Background and Jump, it will be labeled as Jump.
+    # Otherwise it will be labeled as Background.
+    # All other labels will be removed.
+    
+    # Remove all labels except Background and Jump
+    #labels_np = np.delete(labels_np, [2,3,4,5,6,7,8,9,10,11,12,13,14,15], axis=1)
+    labels_np = np.delete(labels_np, [2,3,4,5,6,7,8,9,10,11,12,13,14,15], axis=1)
+    for i in range(len(labels_np)):
+        if labels_np[i][0] == 1 and labels_np[i][1] == 1:
+            labels_np[i][0] = 0
+            labels_np[i][1] = 1
+            
+    CLASSES = ['BACKGROUND', 'JUMP']
+    distribution = DistributionDataset(data_np, labels_np, CLASSES)
+    utils.plot_label_distribution(distribution)
+    print("Number of JUMP samples: ", distribution.values[1])
     # ## Just for fun: spectrogram plot loop
     # Uncomment if you want to see the plot of the spectrograms in a loop.
 
 
-    utils.plot_audio_spectogram(data_np[99])
-    print(labels_np[99])
+    #utils.plot_audio_spectogram(data_np[99])
+    #print(labels_np[99])
     #%matplotlib qt
     #utils.loop_plot_audio_spectogram(data_np)
     #%matplotlib inline
 
 
     # ## Prepare Training, validation and test data
-
-
     TRAINING_RATIO = 0.8
     VALIDATION_RATIO = 0.1
     TEST_RATIO = 0.1
@@ -193,7 +252,6 @@ def main():
 
 
     # ## Define transforms
-
 
     # Define data transforms for data augmentation
     transform = transforms.Compose([
@@ -229,8 +287,8 @@ def main():
     # ## Define trainer
 
 
-    MAX_EPOCHS = 30
-    VERSION = 'cnn_v2_epoch-30-v2'
+    MAX_EPOCHS = 20
+    VERSION = 'cnn_v2_epoch-20-2labels'
 
     accelerator = None
     if torch.cuda.is_available():
@@ -246,36 +304,18 @@ def main():
 
     # ## Start training
 
-
-    trainer.fit(model, train_loader, val_loader)
-
+    #trainer.fit(model, train_loader, val_loader)
 
     # Load previously trained model
-    CHECKPOINT_PATH = f'lightning_logs/{VERSION}/checkpoints/best-epoch=23-val_acc=0.95.ckpt'
+    CHECKPOINT_PATH = f'lightning_logs/{VERSION}/checkpoints/best-epoch=0-val_acc=1.00.ckpt'
 
     model = CNNClassifier.load_from_checkpoint(CHECKPOINT_PATH, classes=CLASSES)
     print(f'Model size: {os.path.getsize(CHECKPOINT_PATH) / 1e6} MB')
 
 
     trainer.test(model, test_loader) # This not the challenge, test set
-
-
-    spectrograms_to_predict = np.load('data/test.npy')
-
-    print('Test spectrogram to predict shape:', spectrograms_to_predict.shape)
-    print('Test spectrogram to predict dtype:', spectrograms_to_predict.dtype)
-
-
-    test_to_predict_dataset = SpectrogramDataset(spectrograms_to_predict, transform=transforms.ToTensor())
-    test_to_predict_loader = DataLoader(test_to_predict_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
-
-
-    predictions = trainer.predict(model, test_to_predict_loader)
-    predictions = np.concatenate(predictions).astype(int)
-
-
-    np.savetxt('predictions.txt', predictions, delimiter='\n', fmt='%d')
-
+    #print('Test set accuracy:', model.log_dict['test_acc'])
+    #print('Test set loss   :', model.log_dict['test_loss'])
 
 if __name__ == '__main__':
     main()

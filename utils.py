@@ -4,6 +4,7 @@ import torch
 import librosa
 import librosa.display
 import warnings
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 warnings.filterwarnings('ignore')
 
 def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues, filename=None):
@@ -31,6 +32,27 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
     
     plt.show()
     
+def plot_multilabel_confusion_matrix(cm, classes, title='Confusion matrix', cmap=plt.cm.Blues, filename=None):
+    # https://stackoverflow.com/questions/62722416/plot-confusion-matrix-for-multilabel-classifcation-python
+    # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html
+    # https://curiousily.com/posts/multi-label-text-classification-with-bert-and-pytorch-lightning/
+    f, axes = plt.subplots(3, 5, figsize=(25, 15))
+    axes = axes.ravel()
+    for i in range(len(classes)):
+        disp = ConfusionMatrixDisplay(cm[i],display_labels=["N", "Y"])
+        disp.plot(ax=axes[i], values_format='.4g')
+        disp.ax_.set_title(f'class {classes[i]}')
+        if i<10:
+            disp.ax_.set_xlabel('')
+        if i%5!=0:
+            disp.ax_.set_ylabel('')
+        disp.im_.colorbar.remove()
+
+    plt.subplots_adjust(wspace=0.10, hspace=0.1)
+    f.colorbar(disp.im_, ax=axes)
+    plt.show()
+
+
 
 def plot_label_distribution(value_counts, title='Distribution of samples in dataset', filename=None):
     plt.figure(figsize=(6, 4))
