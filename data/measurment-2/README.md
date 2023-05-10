@@ -22,7 +22,7 @@ The hydrophone was submerged at a depth of 1 meter into the water while the micr
 
 All the recorded data can be found in the [raw](raw/) folder.
 
-For all the recordings, the gain was set to 20 dB for the hydrophone and 30 dB for the microphone. The calibration only happened for the hydrophone.
+For all the recordings, the gain was set to 30 dB for the hydrophone and 20 dB for the microphone. The calibration only happened for the hydrophone.
 
 The left channel is the hydrophone and the right channel is the microphone.
 
