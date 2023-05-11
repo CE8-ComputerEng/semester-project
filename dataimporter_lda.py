@@ -3,16 +3,14 @@ import glob
 import tqdm
 import torchaudio
 import os
-def import_data(np_datapath, np_labelpath, datapath, labelpath, classes, all_classes = True):
+def import_data(np_datapath, np_labelpath, datapath, labelpath, classes):
     """This function will first try to load the data from the numpy file. If the file doesn't exist, it will create it from the audio files.
-        Set all_classes to False to only use first found class in the label file.
+        For now, it will only work with binary classification, so whether it is background noise or a jump.
     Args:
-        np_datapath (String): path to the numpy file containing the spectrograms (should end with "/")
-        np_labelpath (String): path to the numpy file containing the labels (should end with "/")
-        datapath (String): path to the folder containing the audio files (should end with "/")
-        labelpath (String): path to the folder containing the txt labels (should end with "/")
-        classes (list): list of classes to use
-        all_classes (bool, optional): Whether to use all classes or just the first. Defaults to True.
+        np_datapath (String): path to the numpy file containing the spectrograms
+        np_labelpath (String): path to the numpy file containing the labels
+        datapath (String): path to the folder containing the audio files
+        labelpath (String): path to the folder containing the txt labels
 
     Returns:
         (np.array, np.array, tuple (w,h)): Returns the spectrograms and labels as numpy arrays and the size of a spectrogram in the form (height, width)
@@ -52,35 +50,30 @@ def import_data(np_datapath, np_labelpath, datapath, labelpath, classes, all_cla
             spectrogram = torchaudio.transforms.MelSpectrogram(sample_rate=rate_of_sample, n_mels=128, n_fft=2048)(audio_file)
             spectrogram = torchaudio.transforms.AmplitudeToDB()(np.abs(spectrogram))
             data_np.append(spectrogram)
+
             # Go through each line in the label file and check if it contains a BACKGROUND label, if not, then it is set to 1.
-            if all_classes:
-                with open(label, 'r') as f:
-                    labels = []
-                    for line in f:
-                        label = label_dict[line.strip()]
-                        labels.append(label)
-                labels_out = [0] * len(classes)
-                for label in labels:
-                    labels_out[label] = 1
-                labels_np.append(np.array(labels_out))
-            else:
-                with open(label, 'r') as f:
-                    for line in f:
-                        if 'JUMP' in line:
-                            label_class = "JUMP"
+            with open(label, 'r') as f:
+                # print("Opened file:",f)
+                for line in f:
+                    label_class = ""
+                    for c in classes:
+                        if c in line:
+                            label_class = c
                             break
-                        else:
-                            label_class = "BACKGROUND"
-                labels_np.append(label_dict[label_class])
+                    if label_class == "":
+                       label_class = "BACKGROUND"
+                    break
+            #label_class = open(label, 'r').readline(-1).strip()
+
+            # print("Appending:",label_dict[label_class],"Based on the label class:", label_class)
+            labels_np.append(label_dict[label_class]) # TODO: Change this to the label
             i += 1
             pbar.update(1)
+        print("Got labels_np:",labels_np)
         pbar.close()
         # Convert list of numpy arrays to a single numpy array
-        data_np = np.stack(data_np, axis=0)
-        data_np = data_np.astype(np.float32)
-        labels_np = np.asarray(labels_np)
-        #labels_np = np.stack(labels_np, axis=0)
-        #labels_np = labels_np.astype(np.float32)
+        data_np = np.stack(data_np, dtype=np.float32, axis=0)
+        labels_np = np.stack(labels_np, dtype=np.float32, axis=0)
         data_size = (data_np.shape[2], data_np.shape[3])
         print('Data shape:', data_np.shape)
         print('Labels shape:', labels_np.shape)
@@ -101,8 +94,8 @@ def import_data(np_datapath, np_labelpath, datapath, labelpath, classes, all_cla
         #data_size = (data_np.shape[2], data_np.shape[3])
         data_size = data_np.shape[1:]
         print('Data shape:', data_np.shape[1:])
-        labels_np = np.load(NPLABELPATH, allow_pickle=True)
+        labels_np = np.load(NPLABELPATH)
         
-        labels_np = labels_np.astype(np.float32)
-        data_np = data_np.astype(np.float32)
+        labels_np = labels_np.astype(int)
+        data_np = data_np.astype(float)
         return data_np, labels_np, data_size
