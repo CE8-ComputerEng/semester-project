@@ -3,6 +3,8 @@ import glob
 import tqdm
 import torchaudio
 import os
+import utils
+import librosa
 def import_data(np_datapath, np_labelpath, datapath, labelpath, classes, all_classes = True):
     """This function will first try to load the data from the numpy file. If the file doesn't exist, it will create it from the audio files.
         Set all_classes to False to only use first found class in the label file.
@@ -48,9 +50,18 @@ def import_data(np_datapath, np_labelpath, datapath, labelpath, classes, all_cla
         #data = data[:100]
         i = 0
         for file, label in zip(data, labels):
-            audio_file, rate_of_sample = torchaudio.load(file)
-            spectrogram = torchaudio.transforms.MelSpectrogram(sample_rate=rate_of_sample, n_mels=128, n_fft=2048)(audio_file)
-            spectrogram = torchaudio.transforms.AmplitudeToDB()(np.abs(spectrogram))
+            #audio_file, rate_of_sample = torchaudio.load(file)
+            audio, sr = librosa.load(file, sr=None, mono=False)
+            spectrogram = librosa.stft(audio, n_fft=2048, hop_length=512)
+            spectrogram = librosa.amplitude_to_db(np.abs(spectrogram), top_db=80, ref=1)
+            # Normalize the spectrogram
+            spectrogram = librosa.util.normalize(spectrogram)
+            # Just check if spectrogram is normalized
+            if np.max(spectrogram) > 1 or np.min(spectrogram) < -1:
+                print('Spectrogram not normalized')
+
+            #spectrogram = torchaudio.transforms.MelSpectrogram(sample_rate=rate_of_sample, n_mels=128, n_fft=2048)(audio_file)
+            #spectrogram = torchaudio.transforms.AmplitudeToDB()(np.abs(spectrogram))
             data_np.append(spectrogram)
             # Go through each line in the label file and check if it contains a BACKGROUND label, if not, then it is set to 1.
             if all_classes:
@@ -81,14 +92,14 @@ def import_data(np_datapath, np_labelpath, datapath, labelpath, classes, all_cla
         labels_np = np.asarray(labels_np)
         #labels_np = np.stack(labels_np, axis=0)
         #labels_np = labels_np.astype(np.float32)
-        data_size = (data_np.shape[2], data_np.shape[3])
         print('Data shape:', data_np.shape)
         print('Labels shape:', labels_np.shape)
+        data_size = (data_np.shape[1], data_np.shape[2])
         
         # Data is now a numpy array of shape (num_files, 1, 128, 87)
         # Data should be of shape (num_files, 128, 87)
         
-        data_np = np.squeeze(data_np, axis=1)
+        #data_np = np.squeeze(data_np, axis=1)
         print('Data shape:', data_np.shape)
         
         # Save the numpy array
@@ -103,6 +114,6 @@ def import_data(np_datapath, np_labelpath, datapath, labelpath, classes, all_cla
         print('Data shape:', data_np.shape[1:])
         labels_np = np.load(NPLABELPATH, allow_pickle=True)
         
-        labels_np = labels_np.astype(np.float32)
+        labels_np = labels_np
         data_np = data_np.astype(np.float32)
         return data_np, labels_np, data_size
