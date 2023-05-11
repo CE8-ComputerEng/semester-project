@@ -36,7 +36,7 @@ def plot_multilabel_confusion_matrix(cm, classes, title='Confusion matrix', cmap
     # https://stackoverflow.com/questions/62722416/plot-confusion-matrix-for-multilabel-classifcation-python
     # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html
     # https://curiousily.com/posts/multi-label-text-classification-with-bert-and-pytorch-lightning/
-    f, axes = plt.subplots(3, 5, figsize=(25, 15))
+    f, axes = plt.subplots(4, 4, figsize=(25, 15))
     axes = axes.ravel()
     for i in range(len(classes)):
         disp = ConfusionMatrixDisplay(cm[i],display_labels=["N", "Y"])
@@ -50,7 +50,10 @@ def plot_multilabel_confusion_matrix(cm, classes, title='Confusion matrix', cmap
 
     plt.subplots_adjust(wspace=0.10, hspace=0.1)
     f.colorbar(disp.im_, ax=axes)
-    plt.show()
+
+    if filename:
+        plt.savefig(filename)
+    #plt.show()
 
 
 
@@ -114,6 +117,7 @@ def plot_audio_spectogram(spectrogram, title='Mel-Spectrogram (dB)', filename=No
     
     if filename:
         plt.savefig(filename)
+    #plt.show()
         
         
 def loop_plot_audio_spectogram(spectrograms):
@@ -127,4 +131,5 @@ def loop_plot_audio_spectogram(spectrograms):
         # Clear the current figure.
         plt.clf()
         
+
     
