@@ -132,35 +132,11 @@ class CNNClassifier(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss = self.default_step_work(batch, batch_idx, 'train_loss', 'train_acc')
-        """x, y = batch
-        y_hat = self(x)
-        y_new = y.clone().detach().type(torch.FloatTensor).to(self.device)
-        loss = self.criterion(y_hat, y_new)
-        #print(loss)
-        self.log('train_loss', loss)
-
-
-        #_, predicted = torch.max(y_hat, 1)
-        #accuracy = (predicted == y_new).sum().item() / len(y_new)
-        accuracy = accuracy_score(y_new.cpu().numpy(), predicted.cpu().numpy())
-        self.log('train_acc', accuracy)"""
         
         return loss
 
     def validation_step(self, batch, batch_idx):
         self.default_step_work(batch, batch_idx, 'val_loss', 'val_acc')
-        """x, y = batch
-        y_hat = self(x)
-        y_new = y.clone().detach().type(torch.FloatTensor).to(self.device)
-        loss = self.criterion(y_hat, y_new)
-        #print(loss)
-        self.log('val_loss', loss)
-        
-        #_, predicted = torch.max(y_hat, 1)
-        #print(predicted)
-        #accuracy = (predicted == y_new).sum().item() / len(y_new)
-        accuracy = accuracy_score(y_new.cpu().numpy(), predicted.cpu().numpy())
-        self.log('val_acc', accuracy)"""
     
     def test_step(self, batch, batch_idx):
 
@@ -196,8 +172,9 @@ class CNNClassifier(pl.LightningModule):
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
         x = batch
         y_hat = self(x)
-        
-        _, predicted = torch.max(y_hat, 1)
+
+        predicted = self.multi_label_threshold(y_hat)
+        #_, predicted = torch.max(y_hat, 1)
         return predicted
 
     def configure_optimizers(self):
@@ -350,9 +327,13 @@ def main():
     model = CNNClassifier.load_from_checkpoint(CHECKPOINT_PATH, classes=CLASSES)
     print(f'Model size: {os.path.getsize(CHECKPOINT_PATH) / 1e6} MB')
 
-    trainer.test(model, test_loader) # This not the challenge, test set
-    #print('Test set accuracy:', model.log_dict['test_acc'])
-    #print('Test set loss   :', model.log_dict['test_loss'])
+    trainer.test(model, test_loader)
+
+    
+
+
+
+
 
 if __name__ == '__main__':
     main()
