@@ -26,6 +26,9 @@ from sklearn.metrics import accuracy_score, multilabel_confusion_matrix
 #torch.autograd.set_detect_anomaly(True)
 # ## CNN model
 
+#   TODO:
+# - Try with smaller audio clips
+
 
 class CNNClassifier(pl.LightningModule):
     def __init__(self, classes):
@@ -38,11 +41,12 @@ class CNNClassifier(pl.LightningModule):
         self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
         self.conv4 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
+        self.conv5 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1)
         
         self.maxpool = nn.MaxPool2d(kernel_size=2)
         
-        self.fc1 = nn.Linear(128 * 5 * 8, 256)
-        self.fc2 = nn.Linear(256, num_classes)
+        self.fc1 = nn.Linear(256 * 32 * 1, 512)
+        self.fc2 = nn.Linear(512, num_classes)
         
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax(dim=1)
@@ -54,7 +58,59 @@ class CNNClassifier(pl.LightningModule):
         self.test_confusion_matrix = None
         #self.test_confusion_matrix = np.zeros((num_classes, num_classes))
         
+    def single_label(self, y_new):
+        # Make y_new only contain 0 or 1, where 0 is Background and 1 is the other classes
+        y_single = torch.zeros((len(y_new), 1)).to(self.device)
+        for i in range(len(y_new)):
+            for j in range(len(y_new[i])):
+                if y_new[i][j] != 0:
+                    y_single[i] = 1
+                else:
+                    y_single[i] = 0
+        return y_single
+                    
+    def multi_label_threshold(self, y_hat):
+        # Take y_hat and set all values below 0.5 to 0 and all values above 0.5 to 1
+        # If none of the values are above 0.5, set the highest value to 1
+        predicted = y_hat.clone().detach().type(torch.FloatTensor).to(self.device)
+        highest = 0
+        highest_index = 0
+        found_one = False
+        for i in range(len(predicted)):
+            for j in range(len(predicted[i])):
+                #print(predicted[i][j])
+                if predicted[i][j] < 0.3:
+                    predicted[i][j] = 0
+                    if predicted[i][j] > highest:
+                        highest = predicted[i][j]
+                        highest_index = j
+                else:
+                    predicted[i][j] = 1
+                    found_one = True
+            if not found_one:
+                predicted[i][highest_index] = 1
+                #print(predicted[i])
+            highest = 0
+            highest_index = 0
+            found_one = False
+            
+        return predicted
         
+    def default_step_work(self, batch, batch_idx, loss_log, acc_log):
+        x, y = batch
+        y_hat = self(x)
+        y_new = y.clone().detach().type(torch.FloatTensor).to(self.device)
+        loss = self.criterion(y_hat, y_new)
+        #print(loss)
+        self.log(loss_log, loss)
+        predicted = self.multi_label_threshold(y_hat)
+        #_, predicted = torch.max(y_hat, 1)
+        #print(predicted)
+        #accuracy = (predicted == y_new).sum().item() / len(y_new)
+        accuracy = accuracy_score(y_new.cpu().numpy(), predicted.cpu().numpy())
+        self.log(acc_log, accuracy)
+        return loss
+    
     def forward(self, x):
         x = self.relu(self.conv1(x))
         x = self.maxpool(x)
@@ -64,8 +120,10 @@ class CNNClassifier(pl.LightningModule):
         x = self.maxpool(x)
         x = self.relu(self.conv4(x))
         x = self.maxpool(x)
+        x = self.relu(self.conv5(x))
+        x = self.maxpool(x)
         #print(x.shape)
-        x = x.view(-1, 128 * x.shape[2] * x.shape[3])
+        x = x.view(-1, 256 * x.shape[2] * x.shape[3])
         
         x = self.relu(self.fc1(x))
         x = self.fc2(x)
@@ -73,79 +131,47 @@ class CNNClassifier(pl.LightningModule):
         return x
 
     def training_step(self, batch, batch_idx):
-        x, y = batch
+        loss = self.default_step_work(batch, batch_idx, 'train_loss', 'train_acc')
+        """x, y = batch
         y_hat = self(x)
         y_new = y.clone().detach().type(torch.FloatTensor).to(self.device)
         loss = self.criterion(y_hat, y_new)
         #print(loss)
         self.log('train_loss', loss)
-        
-        # Take y_hat and set all values below 0.5 to 0 and all values above 0.5 to 1
-        predicted = y_hat.clone().detach().type(torch.FloatTensor).to(self.device)
-        for i in range(len(predicted)):
-            for j in range(len(predicted[i])):
-                if predicted[i][j] < 0.5:
-                    predicted[i][j] = 0
-                else:
-                    predicted[i][j] = 1
+
 
         #_, predicted = torch.max(y_hat, 1)
         #accuracy = (predicted == y_new).sum().item() / len(y_new)
         accuracy = accuracy_score(y_new.cpu().numpy(), predicted.cpu().numpy())
-        self.log('train_acc', accuracy)
+        self.log('train_acc', accuracy)"""
         
         return loss
 
     def validation_step(self, batch, batch_idx):
-        x, y = batch
+        self.default_step_work(batch, batch_idx, 'val_loss', 'val_acc')
+        """x, y = batch
         y_hat = self(x)
         y_new = y.clone().detach().type(torch.FloatTensor).to(self.device)
-
-        #print(y_hat.shape)
-        #print(y.shape)
-        """average_loss = 0
-        for sample, label in zip(y_hat, y):
-            print(sample)
-            print(label)
-            loss = self.criterion(sample, label)
-            print(loss)
-            average_loss += loss
-        loss = average_loss / len(y_hat)"""
         loss = self.criterion(y_hat, y_new)
         #print(loss)
         self.log('val_loss', loss)
         
-        # Take y_hat and set all values below 0.5 to 0 and all values above 0.5 to 1
-        predicted = y_hat.clone().detach().type(torch.FloatTensor).to(self.device)
-        for i in range(len(predicted)):
-            for j in range(len(predicted[i])):
-                if predicted[i][j] < 0.5:
-                    predicted[i][j] = 0
-                else:
-                    predicted[i][j] = 1
-
         #_, predicted = torch.max(y_hat, 1)
+        #print(predicted)
         #accuracy = (predicted == y_new).sum().item() / len(y_new)
         accuracy = accuracy_score(y_new.cpu().numpy(), predicted.cpu().numpy())
-        self.log('val_acc', accuracy)
+        self.log('val_acc', accuracy)"""
     
     def test_step(self, batch, batch_idx):
+
         x, y = batch
         y_hat = self(x)
         y_new = y.clone().detach().type(torch.FloatTensor).to(self.device)
+        
         loss = self.criterion(y_hat, y_new)
         #print(loss)
         self.log('test_loss', loss)
-        
-        # Take y_hat and set all values below 0.5 to 0 and all values above 0.5 to 1
-        predicted = y_hat.clone().detach().type(torch.FloatTensor).to(self.device)
-        for i in range(len(predicted)):
-            for j in range(len(predicted[i])):
-                if predicted[i][j] < 0.5:
-                    predicted[i][j] = 0
-                else:
-                    predicted[i][j] = 1
-
+        predicted = self.multi_label_threshold(y_hat)
         #_, predicted = torch.max(y_hat, 1)
         #accuracy = (predicted == y_new).sum().item() / len(y_new)
         accuracy = accuracy_score(y_new.cpu().numpy(), predicted.cpu().numpy())
@@ -201,8 +227,22 @@ def main():
             self.values = label_count
         
     distribution = DistributionDataset(data_np, labels_np, CLASSES)
-    utils.plot_label_distribution(distribution)
+    #utils.plot_label_distribution(distribution)
 
+    # Every sample that contains a label that is not JUMP, Should have BACKGROUND set to 0.
+    for i in range(len(labels_np)):
+        if labels_np[i].any() and labels_np[i][1] == 0:
+            labels_np[i][0] = 0
+        elif labels_np[i][1] == 1:
+            labels_np[i][0] = 0
+            
+    distribution = DistributionDataset(data_np, labels_np, CLASSES)
+    #utils.plot_label_distribution(distribution)
+
+    # Randomly choose 500 IDLE_MOTOR and BOAT samples to keep, and discard the rest.
+    
+    
+    
     # Now we limit the number of labels to 2, Background and Jump
     # If a samples contains both Background and Jump, it will be labeled as Jump.
     # Otherwise it will be labeled as Background.
@@ -210,8 +250,7 @@ def main():
     
     # Remove all labels except Background and Jump
     #labels_np = np.delete(labels_np, [2,3,4,5,6,7,8,9,10,11,12,13,14,15], axis=1)
-    labels_np = np.delete(labels_np, [2,3,4,5,6,7,8,9,10,11,12,13,14,15], axis=1)
-    for i in range(len(labels_np)):
+    """for i in range(len(labels_np)):
         if labels_np[i][0] == 1 and labels_np[i][1] == 1:
             labels_np[i][0] = 0
             labels_np[i][1] = 1
@@ -219,7 +258,7 @@ def main():
     CLASSES = ['BACKGROUND', 'JUMP']
     distribution = DistributionDataset(data_np, labels_np, CLASSES)
     utils.plot_label_distribution(distribution)
-    print("Number of JUMP samples: ", distribution.values[1])
+    print("Number of JUMP samples: ", distribution.values[1])"""
     # ## Just for fun: spectrogram plot loop
     # Uncomment if you want to see the plot of the spectrograms in a loop.
 
@@ -286,9 +325,8 @@ def main():
 
     # ## Define trainer
 
-
-    MAX_EPOCHS = 20
-    VERSION = 'cnn_v2_epoch-20-2labels'
+    MAX_EPOCHS = 40
+    VERSION = 'huge_cnn_v2_epoch-40-multi_label_small_clip'
 
     accelerator = None
     if torch.cuda.is_available():
@@ -307,11 +345,10 @@ def main():
     #trainer.fit(model, train_loader, val_loader)
 
     # Load previously trained model
-    CHECKPOINT_PATH = f'lightning_logs/{VERSION}/checkpoints/best-epoch=0-val_acc=1.00.ckpt'
+    CHECKPOINT_PATH = f'lightning_logs/{VERSION}/checkpoints/best-epoch=38-val_acc=0.81.ckpt'
 
     model = CNNClassifier.load_from_checkpoint(CHECKPOINT_PATH, classes=CLASSES)
     print(f'Model size: {os.path.getsize(CHECKPOINT_PATH) / 1e6} MB')
-
 
     trainer.test(model, test_loader) # This not the challenge, test set
     #print('Test set accuracy:', model.log_dict['test_acc'])
@@ -319,3 +356,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
