@@ -21,6 +21,7 @@ CLIP_LENGTH = 20.0
 
 # Load the audio file
 def load_audio_file(file_path, channels=AUDIO_SOURCE_CHANNELS, sr=SAMPLE_RATE):
+    print("Loading file path:", file_path, "Sample Rate:",SAMPLE_RATE)
     audio, sr = librosa.load(file_path, mono=False, sr=sr)
     audio = audio[channels,:]
     

@@ -3,7 +3,7 @@ import glob
 import tqdm
 import torchaudio
 import os
-def import_data(np_datapath, np_labelpath, datapath, labelpath, classes):
+def import_data(np_datapath, np_labelpath, datapath, labelpath, classes, annotation_layer, only_get_annotation=""):
     """This function will first try to load the data from the numpy file. If the file doesn't exist, it will create it from the audio files.
         For now, it will only work with binary classification, so whether it is background noise or a jump.
     Args:
@@ -49,40 +49,62 @@ def import_data(np_datapath, np_labelpath, datapath, labelpath, classes):
             audio_file, rate_of_sample = torchaudio.load(file)
             spectrogram = torchaudio.transforms.MelSpectrogram(sample_rate=rate_of_sample, n_mels=128, n_fft=2048)(audio_file)
             spectrogram = torchaudio.transforms.AmplitudeToDB()(np.abs(spectrogram))
-            data_np.append(spectrogram)
 
             # Go through each line in the label file and check if it contains a BACKGROUND label, if not, then it is set to 1.
             with open(label, 'r') as f:
-                # print("Opened file:",f)
-                for line in f:
-                    label_class = ""
-                    for c in classes:
-                        if c in line:
-                            label_class = c
-                            break
-                    if label_class == "":
-                       label_class = "BACKGROUND"
-                    break
+                file = f.read().splitlines()
+                if only_get_annotation is not "" and only_get_annotation in file:
+                    label_class = only_get_annotation
+                    print("Found:",only_get_annotation,"In:",file)
+                    data_np.append(spectrogram)
+                    labels_np.append(label_dict[label_class]) # TODO: Change this to the label
+                    i += 1
+                    pbar.update(1)
+                    continue
+                try:
+                    # print("Reading line:", file)
+                    # print("Reading from index:",annotation_layer)
+                    line = file[int(annotation_layer)]
+                except:
+                    continue
+                label_class = ""
+                for c in classes:
+                    if c in line:
+                        label_class = c
+                        break
+                if label_class == "":
+                    label_class = "BACKGROUND"
+                else:
+                    data
             #label_class = open(label, 'r').readline(-1).strip()
 
             # print("Appending:",label_dict[label_class],"Based on the label class:", label_class)
+            data_np.append(spectrogram)
             labels_np.append(label_dict[label_class]) # TODO: Change this to the label
             i += 1
             pbar.update(1)
         print("Got labels_np:",labels_np)
         pbar.close()
         # Convert list of numpy arrays to a single numpy array
+        #print('Data shape:', len(data_np))
+        #print('Labels shape:', labels_np.shape)
+        # data_np = np.asarray(data_np)
+        # print('Data shape:', data_np.shape)
+
+        # print("DATA_NP Iterate:")
+        # for i in data_np:
+        #     print("Shape:", np.shape(i))
+
         data_np = np.stack(data_np, dtype=np.float32, axis=0)
         labels_np = np.stack(labels_np, dtype=np.float32, axis=0)
         data_size = (data_np.shape[2], data_np.shape[3])
-        print('Data shape:', data_np.shape)
-        print('Labels shape:', labels_np.shape)
+
         
         # Data is now a numpy array of shape (num_files, 1, 128, 87)
         # Data should be of shape (num_files, 128, 87)
         
         data_np = np.squeeze(data_np, axis=1)
-        print('Data shape:', data_np.shape)
+        # print('Data shape:', data_np.shape)
         
         # Save the numpy array
         np.save(NPDATAPATH, data_np)

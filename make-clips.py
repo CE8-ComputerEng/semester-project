@@ -5,12 +5,12 @@ from tqdm import tqdm
 
 
 ####################
-AUDIO_SOURCE_PATH = 'data/measurment-2/raw/230428-006.wav'
-AUDIO_SOURCE_LABEL_PATH = 'data/measurment-2/labels/230428-006.txt'
+AUDIO_SOURCE_PATH = 'data/measurment-2/raw/230428-003.wav'
+AUDIO_SOURCE_LABEL_PATH = 'data/measurment-2/labels/230428-003.txt'
 AUDIO_SOURCE_CHANNELS = [0]
 
-AUDIO_OUTPUT_CLIP_PATH = 'data/measurment-2/clips/wav'
-AUDIO_OUTPUT_LABEL_PATH = 'data/measurment-2/clips/txt'
+AUDIO_OUTPUT_CLIP_PATH = 'data/measurment-2/jumps/wav'
+AUDIO_OUTPUT_LABEL_PATH = 'data/measurment-2/jumps/txt'
 AUDIO_OUTPUT_FORMAT = 'wav'
 AUDIO_OUTPUT_SUBTYPE = 'PCM_16'
 
