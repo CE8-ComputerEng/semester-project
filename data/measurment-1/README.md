@@ -1,24 +1,23 @@
-# Measurment 1 - Initial measurment
+# Measurement 1 - Initial measurement
 
 - Date: 2023-03-20
 - Place: Østre Havn, Aalborg, Denmark
 
-This was the initail measurment for the project. The goal was to test the measurment setup and to get a knowledge what environment the hydrophones would be exposed to.
+This was the initial measurement for the project. The goal was to test the measurement setup and to get a knowledge of what environment the hydrophones would be exposed to.
 
-In the laboratory, the hydrophones were calibrated. After the setup brought out to the port side of Østre Havn, Aalborg, Denmark. The hydrophones were placed in the water and the data was recorded. Five different jumps are recorded in this measurment and background noise was recorded for around 30 minutes.
+In the laboratory, the hydrophones were calibrated. After the setup brought out to the port side of Østre Havn, Aalborg, Denmark. The hydrophones were placed in the water and the data was recorded. Five different jumps are recorded in this measurement and background noise was recorded for around 30 minutes.
 
 ## Setup
 
-The measurment setup was as follows:
-![Measurment setup](../../docs/imgs/blockdiagram_measurement_setup.png)
+The measurement setup was as follows:
+![Measurement setup](../../docs/imgs/blockdiagram_measurement_setup.png)
 
-The hydrophones were placed on the port side. The hydrophones were placed to be 12.5 meters apart from each other and then submerged under the water at a depth of 1 meter. One of the hydrophone cables was zip-tied to the above-water part of the rescue ladder, and the 1-meter length cable and hydrophone head were hung in the water. While the other was hung from ∼2.5 meter high on the port side.
-
-![Protectice case](../../docs/imgs/measurement_setup_in_protective_cage.jpg)
+The hydrophones were placed on the port side. The hydrophones were placed to be 12.5 meters apart from each other and then submerged under the water at a depth of 1 meter. One of the hydrophone cables was zip-tied to the above-water part of the rescue ladder, and the 1-meter length cable and hydrophone head were hung in the water. While the other was hung from ∼2.5 meters high on the port side.
+Protective case](../../docs/imgs/measurement_setup_in_protective_cage.jpg)
 
 Hydrophone A was attached to the rescue ladder and hydrophone B was hung from the port side.
 
-## Measurments (raw recordings)
+## Measurements (raw recordings)
 
 All the recorded data can be found in the [raw](raw/) folder.
 
