@@ -7,6 +7,19 @@ import warnings
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 warnings.filterwarnings('ignore')
 
+def plot_binary_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues, filename=None):
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)
+            
+    plt.figure(figsize=(15, 15))
+    disp = ConfusionMatrixDisplay(cm,display_labels=["N", "Y"])
+    
+    disp.plot(values_format='.4g')
+    
+    disp.ax_.set_title(f'class {classes}')
+    
+    if filename:
+        plt.savefig(filename)
 def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues, filename=None):
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)
@@ -36,19 +49,21 @@ def plot_multilabel_confusion_matrix(cm, classes, title='Confusion matrix', cmap
     # https://stackoverflow.com/questions/62722416/plot-confusion-matrix-for-multilabel-classifcation-python
     # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html
     # https://curiousily.com/posts/multi-label-text-classification-with-bert-and-pytorch-lightning/
-    f, axes = plt.subplots(4, 4, figsize=(25, 15))
+    f, axes = plt.subplots(3, 4, figsize=(25, 15))
     axes = axes.ravel()
     for i in range(len(classes)):
         disp = ConfusionMatrixDisplay(cm[i],display_labels=["N", "Y"])
         disp.plot(ax=axes[i], values_format='.4g')
         disp.ax_.set_title(f'class {classes[i]}')
         if i<10:
-            disp.ax_.set_xlabel('')
+            #disp.ax_.set_xlabel('')
+            pass
         if i%5!=0:
-            disp.ax_.set_ylabel('')
+            #disp.ax_.set_ylabel('')
+            pass
         disp.im_.colorbar.remove()
 
-    plt.subplots_adjust(wspace=0.10, hspace=0.1)
+    plt.subplots_adjust(wspace=0.10, hspace=0.40)
     f.colorbar(disp.im_, ax=axes)
 
     if filename:
@@ -69,7 +84,7 @@ def plot_label_distribution(value_counts, title='Distribution of samples in data
     if filename:
         plt.savefig(filename)
     
-    plt.show()
+    #plt.show()
 
 
 def plot_audio_waveform(signal, sample_rate, title='Audio waveform', filename=None):
@@ -130,6 +145,24 @@ def loop_plot_audio_spectogram(spectrograms):
         plt.cla()
         # Clear the current figure.
         plt.clf()
+       
+def save_summary_to_latex(summary, file_path):
+    # Open the file in write mode
+    with open(file_path, 'w') as file:
+        # Write the LaTeX table header
+        file.write("\\begin{table}[ht]\n")
+        file.write("\\centering\n")
+        file.write("\\caption{Model Summary}\n")
+        file.write("\\begin{tabular}{cccc}\n")
+        file.write("\\textbf{Layer (type)} & \\textbf{Output Shape} & \\textbf{Param \\#} & \\textbf{Trainable} \\\\\n")
+        file.write("\\hline\n")
         
-
-    
+        # Iterate over each layer in the summary
+        for layer in summary:
+            line = f"{layer['Layer (type)']} & {layer['Output Shape']} & {layer['Param #']} & {layer['Trainable']}"
+            file.write(line + " \\\\\n")
+        
+        # Write the table footer
+        file.write("\\hline\n")
+        file.write("\\end{tabular}\n")
+        file.write("\\end{table}") 
