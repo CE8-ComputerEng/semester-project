@@ -163,11 +163,15 @@ cython_debug/
 *.wav
 # Clips
 **/clips/
-
+**/jump_clips/
 # Graphs folder
 graphs
 
 # Pytorch lightning logs
 lightning_logs/
 
-*npy
+*.npy
+
+*.txt
+*.png
+*.pkl
