@@ -5,7 +5,17 @@ import torchaudio
 import os
 import utils
 import librosa
-def import_data(np_datapath, np_labelpath, datapath, labelpath, classes, all_classes = True):
+import json
+import pncc
+
+class label_object:
+    def __init__(self, start, end, label, filename):
+        self.start = start
+        self.end = end
+        self.label = label
+        self.filename = filename
+
+def import_data(np_datapath, np_labelpath, datapath, labelpath, timepath, classes, spectrogram_type = "stft", all_classes = True):
     """This function will first try to load the data from the numpy file. If the file doesn't exist, it will create it from the audio files.
         Set all_classes to False to only use first found class in the label file.
     Args:
@@ -14,6 +24,7 @@ def import_data(np_datapath, np_labelpath, datapath, labelpath, classes, all_cla
         datapath (String): path to the folder containing the audio files (should end with "/")
         labelpath (String): path to the folder containing the txt labels (should end with "/")
         classes (list): list of classes to use
+        spectrogram_type (String, optional): Type of spectrogram to use. Defaults to "stft", others can be "mel" or mfcc.
         all_classes (bool, optional): Whether to use all classes or just the first. Defaults to True.
 
     Returns:
@@ -36,10 +47,10 @@ def import_data(np_datapath, np_labelpath, datapath, labelpath, classes, all_cla
                 # If the file doesn't exist, create it.
         DATAPATH = datapath
         LABELPATH = labelpath
-
+        TIMEPATH = timepath
         data = glob.glob(DATAPATH + '*.wav')
         labels = glob.glob(LABELPATH + '*.txt')
-
+        time_labels = glob.glob(TIMEPATH + '*.txt')
         # Convert each wav file to a spectrogram and save it in a numpy array
         data_np = []
         labels_np = []
@@ -49,31 +60,47 @@ def import_data(np_datapath, np_labelpath, datapath, labelpath, classes, all_cla
         # Only test on 10 files for now
         #data = data[:100]
         i = 0
-        for file, label in zip(data, labels):
+        for file, label_name, time_label in zip(data, labels, time_labels):
             #audio_file, rate_of_sample = torchaudio.load(file)
-            audio, sr = librosa.load(file, sr=None, mono=False)
-            spectrogram = librosa.stft(audio, n_fft=2048, hop_length=512)
-            spectrogram = librosa.amplitude_to_db(np.abs(spectrogram), top_db=80, ref=1)
+            audio, sr = librosa.load(file, sr=48000, mono=False)
+            if spectrogram_type == "stft":
+                spectrogram = librosa.stft(audio, n_fft=2048, hop_length=512)
+                spectrogram = librosa.amplitude_to_db(np.abs(spectrogram), top_db=80, ref=1)
+            elif spectrogram_type == "mel":
+                spectrogram = librosa.feature.melspectrogram(y=audio, sr=sr, n_mels=128, n_fft=2048, hop_length=512, fmax=24000)
+                spectrogram = librosa.amplitude_to_db(np.abs(spectrogram), top_db=80, ref=1)
+            elif spectrogram_type == "mfcc":    
+                spectrogram = librosa.feature.melspectrogram(y=audio, sr=sr, n_mels=128, n_fft=2048, hop_length=512, fmax=24000)
+                spectrogram = librosa.feature.mfcc(S=spectrogram, n_mfcc=188)
+            elif spectrogram_type == "pncc":
+                spectrogram = pncc.pncc(audio, n_fft=2048, sr=sr)
             # Normalize the spectrogram
             spectrogram = librosa.util.normalize(spectrogram)
             # Just check if spectrogram is normalized
             if np.max(spectrogram) > 1 or np.min(spectrogram) < -1:
                 print('Spectrogram not normalized')
 
-            #spectrogram = torchaudio.transforms.MelSpectrogram(sample_rate=rate_of_sample, n_mels=128, n_fft=2048)(audio_file)
-            #spectrogram = torchaudio.transforms.AmplitudeToDB()(np.abs(spectrogram))
             data_np.append(spectrogram)
             # Go through each line in the label file and check if it contains a BACKGROUND label, if not, then it is set to 1.
             if all_classes:
-                with open(label, 'r') as f:
+                with open(label_name, 'r') as f:
                     labels = []
                     for line in f:
-                        label = label_dict[line.strip()]
-                        labels.append(label)
+                        try:
+                            label = label_dict[line.strip()]
+                            labels.append(label)
+                        except KeyError:
+                            print('Key not found')
+                            print(label_name)
+                            exit()
                 labels_out = [0] * len(classes)
                 for label in labels:
                     labels_out[label] = 1
-                labels_np.append(np.array(labels_out))
+                time_info  = ""
+                with open(time_label, 'r') as f:
+                    time_info = f.readline()
+                label_info = label_object(time_info.split("\t")[0], time_info.split("\t")[1], np.asarray(labels_out), label_name)
+                labels_np.append(label_info)
             else:
                 with open(label, 'r') as f:
                     for line in f:
@@ -82,13 +109,19 @@ def import_data(np_datapath, np_labelpath, datapath, labelpath, classes, all_cla
                             break
                         else:
                             label_class = "BACKGROUND"
-                labels_np.append(label_dict[label_class])
+                time_info  = ""
+                with open(time_label, 'r') as f:
+                    time_info = f.readline()
+                label_info = label_object(time_info.split("\t")[0], time_info.split("\t")[1], np.asarray(labels_out), label_name)
+                labels_np.append(label_info)
             i += 1
             pbar.update(1)
         pbar.close()
         # Convert list of numpy arrays to a single numpy array
         data_np = np.stack(data_np, axis=0)
+        #data_np = np.asarray(data_np)
         data_np = data_np.astype(np.float32)
+        
         labels_np = np.asarray(labels_np)
         #labels_np = np.stack(labels_np, axis=0)
         #labels_np = labels_np.astype(np.float32)
