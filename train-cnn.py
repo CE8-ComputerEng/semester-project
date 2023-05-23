@@ -8,21 +8,16 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision.transforms as transforms
-import torchaudio
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 from pytorch_lightning import Trainer, loggers
 from pytorch_lightning.callbacks import ModelCheckpoint
-import torchmetrics
 from sklearn.model_selection import train_test_split
 from torchsummary import summary
-import glob
-import tqdm
 from includes.dataset import SpectrogramDataset
 import includes.utils as utils
 import includes.cnn_dataimporter as cnn_dataimporter
 import matplotlib.pyplot as plt
-import librosa
 from includes.data_splitter import split_data_val_train
 #torch.autograd.set_detect_anomaly(True)
 # ## CNN model
@@ -94,16 +89,6 @@ def main():
         if TRAINING_RATIO + VALIDATION_RATIO + TEST_RATIO != 1:
             raise ValueError('Training, validation, and test ratios must sum to 1.')
 
-        """train_size = int(TRAINING_RATIO * len(train_data_np))
-        val_size = int(VALIDATION_RATIO * len(train_data_np))
-        test_size = len(train_data_np) - train_size - val_size
-
-        train_spectrograms, val_spectrograms, train_labels, val_labels = train_test_split(train_data_np, train_labels_np, test_size=val_size, random_state=42)
-        #train_spectrograms, test_spectrograms, train_labels, test_labels = train_test_split(train_spectrograms, train_labels, test_size=test_size, random_state=42)
-
-        print('Training samples:', train_spectrograms.shape[0])
-        print('Validation samples:', val_spectrograms.shape[0])
-        #print('Test samples:', test_spectrograms.shape[0])"""
         train_spectrograms, train_labels, val_spectrograms, val_labels = split_data_val_train(train_data_np, train_labels_np, CLASSES, TRAIN_MAX_SAMPLES_PER_CLASS=4000)
         # Save the full dataset and labels
         np.save(FULL_TRAIN_DATASET_PATH, train_spectrograms)
