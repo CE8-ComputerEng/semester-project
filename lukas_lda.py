@@ -4,12 +4,15 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-import librosa
 import sklearn.model_selection
 import sklearn.metrics
 import matplotlib.pyplot as plt
 import joblib
 import matplotlib.colors as mcolors
+
+if not os.path.exists('LDA'):
+    os.makedirs('LDA')
+    print("Created LDA folder")
 # Data set split
 #data_np, val_np, data_labels, val_labels = sklearn.model_selection.train_test_split(training_np, data_labels, test_size=0.2, random_state=420)
 

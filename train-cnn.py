@@ -30,6 +30,10 @@ class DistributionDataset:
         self.values = label_count
                 
 def main():
+    if not os.path.exists('CNN'):
+        os.makedirs('CNN')
+        print("Created CNN folder")
+
     # ## Import data and labels
     # 
     # Possible spectrogram types are "stft", "mel", "mfcc", and "pncc"
