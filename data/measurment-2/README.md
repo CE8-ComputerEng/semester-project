@@ -1,9 +1,9 @@
-# Measurment 2 - Second measurment
+# Measurement 2 - Second measurement
 
 - Date: 2023-04-28
 - Place: Østre Havn, Aalborg, Denmark and Vestre Havnepromenade close to the Aalborg Havnefront, Aalborg, Denmark
 
-This was the second measurment period for the project. The goal was to take jump measurments from different distances and make measurments in different environments. In this measurment period we used a new setup where one of the hydrophone replaced with a mictophone.
+This was the second measurement period for the project. The goal was to take jump measurements from different distances and make measurements in different environments. In this measurement period, we used a new setup where one of the hydrophones was replaced with a microphone.
 
 From the first location, we gathered 8 jumps with each jump at a different distance from the hydrophone (starting at 5 meters away and finishing at 40 meters away, in the opposite direction of the current).
 
@@ -11,14 +11,14 @@ We gathered 1 hour and 25 minutes from the second location of background noise a
 
 ## Setup
 
-The measurment setup was as follows:
-![Measurment setup](../../docs/imgs/blockdiagram_measurement_setup_v2.png)
+The measurement setup was as follows:
+![Measurement setup](../../docs/imgs/blockdiagram_measurement_setup_v2.png)
 
 The hydrophone was submerged at a depth of 1 meter into the water while the microphone was set at a height of 1 m from the ground using a stand but at a height of ~3 m above water. This was done because there was no reliable way to setup the microphone at the same height as the hydrophone's depth due to the fjord line edge.
 
-![Protectice case](../../docs/imgs/microphone_setup.jpg)
+![Protective case](../../docs/imgs/microphone_setup.jpg)
 
-## Measurments (raw recordings)
+## Measurements (raw recordings)
 
 All the recorded data can be found in the [raw](raw/) folder.
 

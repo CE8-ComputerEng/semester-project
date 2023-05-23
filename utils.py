@@ -20,17 +20,19 @@ def plot_binary_confusion_matrix(cm, classes, normalize=False, title='Confusion 
     
     if filename:
         plt.savefig(filename)
-def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues, filename=None):
+        
+def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues, filename=None, rotation_x=0, rotation_y=90):
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)
 
     plt.figure(figsize=(15, 15))
     
     im = plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    print
     plt.colorbar(im, fraction=0.046, pad=0.04)
     
-    plt.xticks(np.arange(len(classes)), classes, rotation=45)
-    plt.yticks(np.arange(len(classes)), classes)
+    plt.xticks(np.arange(len(classes)), classes, rotation=rotation_x)
+    plt.yticks(np.arange(len(classes)), classes, rotation=rotation_y)
     
     plt.title(title)
     plt.xlabel('Predicted label')
@@ -38,10 +40,10 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
     
     for i in range(len(classes)):
         for j in range(len(classes)):
-            plt.text(j, i, cm[i, j], horizontalalignment='center', color='white' if cm[i, j] > cm.max() / 2 else 'black', fontsize=14)
+            plt.text(j, i, cm[i, j], horizontalalignment='center', color='white' if cm[i, j] < cm.mean() else 'black', fontsize=14)
     
     if filename:
-        plt.savefig(filename)
+        plt.savefig(filename, bbox_inches='tight', dpi=300)
     
     plt.show()
     
