@@ -3,8 +3,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import pytorch_lightning as pl
-import utils
-from utils import plot_confusion_matrix, plot_multilabel_confusion_matrix
+import includes.utils as utils
+from includes.utils import plot_confusion_matrix, plot_multilabel_confusion_matrix
 from sklearn.metrics import accuracy_score, multilabel_confusion_matrix, f1_score, precision_score, recall_score
 import matplotlib.pyplot as plt
 import numpy as np
