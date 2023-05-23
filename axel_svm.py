@@ -8,6 +8,13 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import GridSearchCV
 import joblib 
 import os
+
+# Make SVM folder if it doesn't exist
+if not os.path.exists('SVM'):
+    os.makedirs('SVM')
+    print("Created SVM folder")
+
+
 # Possible spectrogram types are "stft", "mel", "mfcc", and "pncc"
 spectrogram_type = "stft"
 classes_get = ['JUMP','BOAT','SEAGUL_SCREAM','BRIDGE','SCOOTER','PEE','OBJECT_SPLASH','UFO','IDLE_MOTOR','SEAGUL_SPLASH','VOICE', 'SWIM']
@@ -114,34 +121,6 @@ if dmr:
     print("Shape data_set_train:", train_data.shape)
     print("Shape data_set_val:", val_data.shape)
 
-
-# %%
-# Plot the data
-"""
-fig, axs = plt.subplots(components, 1, figsize=(6, 2*components), sharex=True)
-for i in range(components):
-    axs[i].scatter(train_classes, train_data[:, i])
-    axs[i].set_ylabel(f"Component {i+1}")
-    axs[i].set_xticks(range(len(classes)))
-    axs[i].set_xticklabels(classes, rotation=90)
-
-plt.tight_layout()
-plt.show()
-
-# ax.set_xlim([np.min(fitted train_data[:, 0]), np.max(fitted train_data[:, 0])])
-# ax.set_ylim([np.min(fitted train_data[:, 1]), np.max(fitted train_data[:, 1])])
-
-plt.show()
-"""
-
-# %%
-# Train data
-"""
-model = make_pipeline(StandardScaler(), SVC(gamma='scale'))
-model.fit(train_data, train_classes)
-print("Model trained")
-"""
-
 # %%
 ### Parameter Sweep 1 ###
 
@@ -225,30 +204,4 @@ print(classification_report(val_labels ,grid_predictions))
 with open('SVM/classification_report_'+spectrogram_type+'_best_estimator.txt', 'w') as f:
     f.write(classification_report(val_labels ,grid_predictions))
     f.close()
-
-
-# %%
-# Training accuracy
-"""
-train_predictions = model.predict(train_data)
-train_accuracy = accuracy_score(train_classes, train_predictions)
-print("Training Accuracy:", train_accuracy)
-"""
-
-# %%
-# Validation accuracy
-"""
-start_val_time = time.time()
-
-validation_predictions = model.predict(val_data)
-validation_accuracy = accuracy_score(val_classes, validation_predictions)
-
-print("Validation Accuracy:", validation_accuracy)
-print("Validation Computation Time:", time.time()-start_val_time)
-"""
-
-# %%
-
-
-
 
