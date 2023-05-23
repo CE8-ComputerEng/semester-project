@@ -18,12 +18,12 @@ from sklearn.model_selection import train_test_split
 from torchsummary import summary
 import glob
 import tqdm
-from dataset import SpectrogramDataset
-import utils
-import cnn_dataimporter
+from includes.dataset import SpectrogramDataset
+import includes.utils as utils
+import includes.cnn_dataimporter as cnn_dataimporter
 import matplotlib.pyplot as plt
 import librosa
-from data_splitter import split_data_val_train
+from includes.data_splitter import split_data_val_train
 #torch.autograd.set_detect_anomaly(True)
 # ## CNN model
 class DistributionDataset:

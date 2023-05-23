@@ -3,10 +3,10 @@ import glob
 import tqdm
 import torchaudio
 import os
-import utils
+import includes.utils as utils
 import librosa
 import json
-import pncc
+import includes.pncc as pncc
 
 class label_object:
     def __init__(self, start, end, label, filename):
