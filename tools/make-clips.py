@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../')
 import os
 import librosa
 import soundfile as sf
@@ -225,5 +227,15 @@ def make_clips(audio_paths, audio_labels, audio_output_paths, audio_output_label
             pbar.close()
 
 if __name__ == '__main__':
+    # Check if all the paths exist
+    for audio_path, label_path, time_path in zip(audio_output_paths, audio_output_labels, audio_output_times):
+        if not os.path.exists(audio_path): # Then create it
+            os.makedirs(audio_path)
+        if not os.path.exists(label_path): # Then create it
+            os.makedirs(label_path)
+        if not os.path.exists(time_path): # Then create it
+            os.makedirs(time_path)
+        else:
+            print('path exist.')
     make_clips(audio_paths, audio_labels, audio_output_paths, audio_output_labels, audio_output_times)
     print('Finished generating clips.')

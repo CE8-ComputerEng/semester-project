@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../')
 import echopype
 import numpy as np
 import matplotlib.pyplot as plt
